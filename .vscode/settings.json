@@ -36,5 +36,10 @@
     "typescript",
     "typescriptreact"
   ],
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "githubPullRequests.remotes": [
+    "origin",
+    "upstream",
+    "githubPullRequests.remotes"
+  ]
 }
