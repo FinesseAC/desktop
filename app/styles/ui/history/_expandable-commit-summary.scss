@@ -1,46 +1,10 @@
 @import '../../mixins';
 
-/** A React component holding the selected commit's detailed information */
-#commit-summary {
+.expandable-commit-summary {
   display: flex;
   flex-direction: column;
   min-height: 0;
-
-  .avatar {
-    width: 16px;
-    height: 16px;
-  }
-
-  .expander {
-    position: absolute;
-    width: 75px;
-    top: var(--spacing);
-    right: var(--spacing);
-    background: transparent;
-    padding: 0;
-    border: none;
-    color: var(--text-color);
-    font-size: inherit;
-    font-weight: normal;
-    font-family: inherit;
-
-    svg {
-      vertical-align: text-top;
-      margin-right: var(--spacing-half);
-    }
-  }
-
-  &.expanded {
-    .commit-summary-description-scroll-view {
-      max-height: 400px;
-      overflow: auto;
-      display: revert;
-
-      &:before {
-        content: none;
-      }
-    }
-  }
+  border-bottom: var(--base-border);
 
   &.hide-description-border {
     .commit-summary-description-container {
@@ -83,40 +47,41 @@
       margin-right: var(--spacing-half);
     }
   }
-}
 
-// NOTE: This isn't a real class, it's an SCSS hack to allow us to only write
-// the suffixes of class names that all start with commit-summary. It's quite
-// confusing and also has the added downside of making it impossible to search
-// for a class name one finds in tsx. We might want to consider not allowing
-// this in the future but that's for... the future.
-.commit-summary {
-  &-title,
-  &-meta {
-    padding: var(--spacing);
-
-    .lines-added {
-      color: var(--color-new);
-    }
-
-    .lines-deleted {
-      color: var(--color-deleted);
-    }
-  }
-
-  &-title {
+  .ecs-title {
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
     line-height: 16px;
     padding: var(--spacing);
     word-wrap: break-word;
+    display: flex;
+
+    .commits-in-diff {
+      margin-left: var(--spacing-half);
+    }
 
     &.empty-summary {
       color: var(--text-secondary-color);
     }
+
+    .expander {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: var(--text-color);
+      font-size: inherit;
+      font-weight: normal;
+      font-family: inherit;
+      margin-left: var(--spacing);
+      height: auto;
+
+      svg {
+        vertical-align: text-top;
+      }
+    }
   }
 
-  &-description-container {
+  .commit-summary-description-container {
     display: flex;
     // So that we have something to position the expander against
     position: relative;
@@ -124,7 +89,7 @@
     min-height: 0;
   }
 
-  &-description-scroll-view {
+  .commit-summary-description-scroll-view {
     overflow: hidden;
     flex: 1;
     display: -webkit-box;
@@ -133,9 +98,9 @@
     -webkit-line-clamp: 3;
   }
 
-  // Enable text selection inside the title and description elements.
-  &-title,
-  &-description {
+  .ecs-title,
+  .commit-summary-description {
+    // Enable text selection inside the title and description elements.
     user-select: text;
     cursor: text;
 
@@ -146,7 +111,7 @@
     }
   }
 
-  &-description {
+  .commit-summary-description {
     font-family: var(--font-family-monospace);
     font-size: var(--font-size-sm);
     word-wrap: break-word;
@@ -155,44 +120,73 @@
     min-height: 0;
   }
 
-  &-meta {
+  .ecs-meta {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0 var(--spacing) var(--spacing);
-  }
 
-  &-meta-item:not(.without-truncation) {
-    flex-shrink: 1;
-    min-width: 0;
-  }
-
-  &-meta-item {
-    display: flex;
-    flex-direction: row;
-    min-width: 0;
-    margin-right: var(--spacing);
-    font-size: var(--font-size-sm);
-    flex-shrink: 0;
-
-    .avatar,
-    .octicon {
-      display: inline-block;
-      margin-right: var(--spacing-third);
-      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
-    }
-
-    .selectable {
-      user-select: text;
-    }
-
-    .tags {
-      @include ellipsis;
+    .ecs-item:not(.without-truncation) {
       flex-shrink: 1;
+      min-width: 0;
+    }
+
+    .ecs-meta-item {
+      display: flex;
+      flex-direction: row;
+      min-width: 0;
+      margin-right: var(--spacing);
+      font-size: var(--font-size-sm);
+      flex-shrink: 0;
+
+      .avatar,
+      .octicon {
+        display: inline-block;
+        margin-right: var(--spacing-third);
+        vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+      }
+
+      .avatar {
+        width: 16px;
+        height: 16px;
+      }
+
+      .selectable {
+        user-select: text;
+      }
+
+      &.lines-added {
+        color: var(--color-new);
+      }
+
+      &.lines-deleted {
+        color: var(--color-deleted);
+      }
+
+      .tags {
+        @include ellipsis;
+        flex-shrink: 1;
+      }
     }
   }
 
-  &-header {
-    border-bottom: var(--base-border);
+  &.expanded {
+    .ecs-meta {
+      display: block;
+
+      .ecs-meta-item {
+        margin-bottom: var(--spacing-half);
+      }
+    }
+
+    .commit-summary-description-scroll-view {
+      max-height: 400px;
+      overflow: auto;
+      display: revert;
+
+      &:before {
+        content: none;
+      }
+    }
   }
 }

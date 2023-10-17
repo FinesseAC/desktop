@@ -18,6 +18,7 @@ import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import memoizeOne from 'memoize-one'
+import { Button } from '../lib/button'
 
 interface IExpandableCommitSummaryProps {
   readonly repository: Repository
@@ -221,22 +222,25 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderExpander() {
-    if (
-      !this.state.body.length ||
-      (!this.props.isExpanded && !this.state.isOverflowed)
-    ) {
+    const { selectedCommits, isExpanded } = this.props
+    if (selectedCommits.length > 1) {
       return null
     }
 
-    const expanded = this.props.isExpanded
-    const onClick = expanded ? this.onCollapse : this.onExpand
-    const icon = expanded ? OcticonSymbol.fold : OcticonSymbol.unfold
-
     return (
-      <button onClick={onClick} className="expander">
-        <Octicon symbol={icon} />
-        {expanded ? 'Collapse' : 'Expand'}
-      </button>
+      <Button
+        onClick={isExpanded ? this.onCollapse : this.onExpand}
+        className="expander"
+        tooltip={isExpanded ? 'Collapse' : 'Expand'}
+        ariaExpanded={isExpanded}
+        ariaLabel={
+          isExpanded ? 'Collapse commit details' : 'Expand commit details'
+        }
+      >
+        <Octicon
+          symbol={isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold}
+        />
+      </Button>
     )
   }
 
@@ -323,8 +327,6 @@ export class ExpandableCommitSummary extends React.Component<
             text={this.state.body}
           />
         </div>
-
-        {this.renderExpander()}
       </div>
     )
   }
@@ -393,13 +395,13 @@ export class ExpandableCommitSummary extends React.Component<
     }
 
     return (
-      <li className="commit-summary-meta-item without-truncation">
+      <div className="ecs-meta-item without-truncation">
         <AvatarStack users={avatarUsers} />
         <CommitAttribution
           gitHubRepository={repository.gitHubRepository}
           commits={selectedCommits}
         />
-      </li>
+      </div>
     )
   }
 
@@ -410,30 +412,23 @@ export class ExpandableCommitSummary extends React.Component<
     }
 
     return (
-      <li
-        className="commit-summary-meta-item without-truncation"
-        aria-label="SHA"
-      >
+      <div className="ecs-meta-item without-truncation">
         <Octicon symbol={OcticonSymbol.gitCommit} />
         <TooltippedCommitSHA
           className="selectable"
           commit={selectedCommits[0]}
         />
-      </li>
+      </div>
     )
   }
 
-  private renderSummary = () => {
+  private renderSummaryText = () => {
     const { selectedCommits, shasInDiff } = this.props
-    const { summary, hasEmptySummary } = this.state
-    const summaryClassNames = classNames('commit-summary-title', {
-      'empty-summary': hasEmptySummary,
-    })
+    const { summary } = this.state
 
     if (selectedCommits.length === 1) {
       return (
         <RichText
-          className={summaryClassNames}
           emoji={this.props.emoji}
           repository={this.props.repository}
           text={summary}
@@ -447,11 +442,13 @@ export class ExpandableCommitSummary extends React.Component<
     )
     const numInDiff = selectedCommits.length - commitsNotInDiff
     const commitsPluralized = numInDiff > 1 ? 'commits' : 'commit'
+
     return (
-      <div className={summaryClassNames}>
+      <>
         Showing changes from{' '}
         {commitsNotInDiff > 0 ? (
           <LinkButton
+            className="commits-in-diff"
             onMouseOver={this.onHighlightShasInDiff}
             onMouseOut={this.onRemoveHighlightOfShas}
             onClick={this.showReachableCommits}
@@ -464,30 +461,40 @@ export class ExpandableCommitSummary extends React.Component<
             {numInDiff} {commitsPluralized}
           </>
         )}
+      </>
+    )
+  }
+
+  private renderSummary = () => {
+    const { hasEmptySummary } = this.state
+    const summaryClassNames = classNames('ecs-title', {
+      'empty-summary': hasEmptySummary,
+    })
+
+    return (
+      <div className={summaryClassNames}>
+        {this.renderSummaryText()}
+        {this.renderExpander()}
       </div>
     )
   }
 
   public render() {
-    const className = classNames({
+    const className = classNames('expandable-commit-summary', {
       expanded: this.props.isExpanded,
-      collapsed: !this.props.isExpanded,
       'has-expander': this.props.isExpanded || this.state.isOverflowed,
       'hide-description-border': this.props.hideDescriptionBorder,
     })
 
     return (
-      <div id="commit-summary" className={className}>
-        <div className="commit-summary-header">
-          {this.renderSummary()}
-          <ul className="commit-summary-meta">
-            {this.renderAuthors()}
-            {this.renderCommitRef()}
-            {this.renderLinesChanged()}
-            {this.renderTags()}
-          </ul>
+      <div className={className}>
+        {this.renderSummary()}
+        <div className="ecs-meta">
+          {this.renderAuthors()}
+          {this.renderCommitRef()}
+          {this.renderLinesChanged()}
+          {this.renderTags()}
         </div>
-
         {this.renderDescription()}
         {this.renderCommitsNotReachable()}
       </div>
@@ -509,15 +516,15 @@ export class ExpandableCommitSummary extends React.Component<
     return (
       <>
         <TooltippedContent
-          tagName="li"
-          className="commit-summary-meta-item without-truncation lines-added"
+          tagName="div"
+          className="ecs-meta-item without-truncation lines-added"
           tooltip={linesAddedTitle}
         >
           +{linesAdded}
         </TooltippedContent>
         <TooltippedContent
-          tagName="li"
-          className="commit-summary-meta-item without-truncation lines-deleted"
+          tagName="div"
+          className="ecs-meta-item without-truncation lines-deleted"
           tooltip={linesDeletedTitle}
         >
           -{linesDeleted}
@@ -539,13 +546,13 @@ export class ExpandableCommitSummary extends React.Component<
     }
 
     return (
-      <li className="commit-summary-meta-item" title={tags.join('\n')}>
+      <div className="ecs-meta-ite-item">
         <span>
           <Octicon symbol={OcticonSymbol.tag} />
         </span>
 
         <span className="tags selectable">{tags.join(', ')}</span>
-      </li>
+      </div>
     )
   }
 }
